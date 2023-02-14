@@ -3,7 +3,6 @@
 
 The ManageIt is a android application,ManageIt app is a digital tool that securely stores and organizes all of a user's passwords and other sensitive information.
 
-
 ## Features
 
 - Simplistic UI
@@ -15,21 +14,6 @@ The ManageIt is a android application,ManageIt app is a digital tool that secure
 - Data Encryption.
 - Easy editing
 
-
-## Used To build The app
-- Android Studio - Official Android IDE by Google & JetBrains
-- Gradle - Build automation tool
-- Java - Best programming language for Android apps.
-- Google Material Design Components.
-- Firebase Authentication.
-- Firebase Firestore Database.
-## Installation Instructions
-
-Install my-project with android Studio and Firebase
-
-- Add google-service.json file into project level app build.
-- Enable Firestore Database in Firebase
-- Enable Firebase Database and Authentication.
     
 ## Screenshots
 
@@ -50,4 +34,19 @@ Install my-project with android Studio and Firebase
     
   </tr>
 </table>
+
+## Used To build The app
+- Android Studio - Official Android IDE by Google & JetBrains
+- Gradle - Build automation tool
+- Java - Best programming language for Android apps.
+- Google Material Design Components.
+- Firebase Authentication.
+- Firebase Firestore Database.
+## Installation Instructions
+
+Install my-project with android Studio and Firebase
+
+- Add google-service.json file into project level app build.
+- Enable Firestore Database in Firebase
+- Enable Firebase Database and Authentication.
 
