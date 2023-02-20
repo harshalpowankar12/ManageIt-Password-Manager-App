@@ -19,14 +19,22 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.hpdevelopers.manageit.EncryptDecrypt;
 import com.hpdevelopers.manageit.R;
 import com.hpdevelopers.manageit.Utility;
 import com.hpdevelopers.manageit.model.Password;
 import com.hpdevelopers.manageit.passwords.CreatePasswordActivity;
 
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Locale;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 public class PasswordAdapter extends FirestoreRecyclerAdapter<Password, PasswordAdapter.PasswordViewHolder> {
 
@@ -52,25 +60,37 @@ public class PasswordAdapter extends FirestoreRecyclerAdapter<Password, Password
         holder.icontvN.setText(passwd.getAccount().substring(0, 1).toUpperCase(Locale.ROOT));
 
 
+        //DECRYPTING THE DATA
+
         //UserId
         String userId = passwd.getUserid();
-        String DecryptedUserID = decryptString(userId);
-
         //Password
         String password = passwd.getPassword();
-        String DecryptedPassword = decryptString(password);
-
         //Other
         String other = passwd.getOther();
-        String DecryptedOther = decryptString(other);
+
+        String decryptedUserId = null;
+        String decryptedCnfPwd = null;
+        String decryptedOther = null;
+
+        try {
+             decryptedUserId = EncryptDecrypt.decrypt(userId);
+             decryptedCnfPwd = EncryptDecrypt.decrypt(password);
+             decryptedOther = EncryptDecrypt.decrypt(other);
+
+        }catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException | InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
 
 
         //Copy Password ImageButton
+        String finalDecryptedCnfPwd = decryptedCnfPwd;
         holder.cpypasswordN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 ClipboardManager myClipboard = (ClipboardManager) view.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData myClip = ClipData.newPlainText("Password", DecryptedPassword);
+                ClipData myClip = ClipData.newPlainText("Password", finalDecryptedCnfPwd);
                 myClipboard.setPrimaryClip(myClip);
                 Toast.makeText(view.getContext(), "Password Copied", Toast.LENGTH_SHORT).show();
 
@@ -78,6 +98,8 @@ public class PasswordAdapter extends FirestoreRecyclerAdapter<Password, Password
         });
 
         //VertIcon
+        String finalDecryptedUserId = decryptedUserId;
+        String finalDecryptedOther = decryptedOther;
         holder.vertpasswordN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -93,14 +115,14 @@ public class PasswordAdapter extends FirestoreRecyclerAdapter<Password, Password
                             case R.id.copyUsername:
                                 //handle menu1 click
                                 ClipboardManager myUserIdClipboard = (ClipboardManager) view.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                                ClipData myClipUserId = ClipData.newPlainText("UserName", DecryptedUserID);
+                                ClipData myClipUserId = ClipData.newPlainText("UserName", finalDecryptedUserId);
                                 myUserIdClipboard.setPrimaryClip(myClipUserId);
                                 Toast.makeText(view.getContext(), "UserName Copied", Toast.LENGTH_SHORT).show();
                                 break;
                             case R.id.copyPassword:
                                 //handle menu2 click
                                 ClipboardManager myPasswordClipboard = (ClipboardManager) view.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                                ClipData myClipPassword = ClipData.newPlainText("Password", DecryptedPassword);
+                                ClipData myClipPassword = ClipData.newPlainText("Password", finalDecryptedOther);
                                 myPasswordClipboard.setPrimaryClip(myClipPassword);
                                 Toast.makeText(view.getContext(), "Password Copied", Toast.LENGTH_SHORT).show();
                                 break;
@@ -121,9 +143,9 @@ public class PasswordAdapter extends FirestoreRecyclerAdapter<Password, Password
             String docIdP = this.getSnapshots().getSnapshot(position).getId();
             Intent intent = new Intent(context, CreatePasswordActivity.class);
             intent.putExtra("account", passwd.getAccount());
-            intent.putExtra("userid", DecryptedUserID);
-            intent.putExtra("password", DecryptedPassword);
-            intent.putExtra("other", DecryptedOther);
+            intent.putExtra("userid", finalDecryptedUserId);
+            intent.putExtra("password", finalDecryptedCnfPwd);
+            intent.putExtra("other", finalDecryptedOther);
 
             intent.putExtra("docIdP", docIdP);
             context.startActivity(intent);
@@ -173,24 +195,7 @@ public class PasswordAdapter extends FirestoreRecyclerAdapter<Password, Password
         }
     }
 
-    //Decrypt String
-    public String decryptString(String str) {
-        String decryptedString = "";
-        if (str == null || str.isEmpty()) {
-            return decryptedString;
-        }
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            try {
-                byte[] decodeString = Base64.getDecoder().decode(str);
-                decryptedString = new String(decodeString, "UTF-8");
-            } catch (IllegalArgumentException e) {
-                // Log error or add custom error handling code
-            } catch (UnsupportedEncodingException e) {
-                // Log error or add custom error handling code
-            }
-        }
-        return decryptedString;
-    }
+
 
 }
 

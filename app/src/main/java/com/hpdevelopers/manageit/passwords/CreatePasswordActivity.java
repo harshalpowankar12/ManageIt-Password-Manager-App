@@ -22,12 +22,20 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
+import com.hpdevelopers.manageit.EncryptDecrypt;
 import com.hpdevelopers.manageit.R;
 import com.hpdevelopers.manageit.Utility;
 import com.hpdevelopers.manageit.model.Password;
 
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 public class CreatePasswordActivity extends AppCompatActivity {
 
@@ -159,9 +167,7 @@ public class CreatePasswordActivity extends AppCompatActivity {
         String cnfpassword = cnfPasswordEditex.getText().toString().trim();
         String other = otherEdittext.getText().toString().trim();
 
-        EncryptStr(cnfpassword);
-        EncryptStr(userid);
-        EncryptStr(other);
+
 
         if (accountname.isEmpty()) {
             accountNameEdittext.setError("Account Name is Required ");
@@ -182,13 +188,28 @@ public class CreatePasswordActivity extends AppCompatActivity {
         if (!(cnfpassword.equals(password))) {
             cnfPasswordEditex.setError("Password Not Matched !");
         } else {
-            Password passwd = new Password();
-            passwd.setAccount(accountname);
-            passwd.setUserid(EncryptStr(userid));
-            passwd.setPassword(EncryptStr(cnfpassword));
-            passwd.setOther(EncryptStr(other));
-            passwd.setTimestamp(Timestamp.now());
-            savePasswordFirebase(passwd);
+
+            try {
+                String encryptedUserId = EncryptDecrypt.encrypt(userid);
+                String encryptedCnfPwd = EncryptDecrypt.encrypt(cnfpassword);
+                String encryptedOther = EncryptDecrypt.encrypt(other);
+
+
+                Password passwd = new Password();
+                passwd.setAccount(accountname);
+                passwd.setUserid(encryptedUserId);
+                passwd.setPassword(encryptedCnfPwd);
+                passwd.setOther(encryptedOther);
+                passwd.setTimestamp(Timestamp.now());
+                savePasswordFirebase(passwd);
+
+
+            } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException | InvalidKeyException e) {
+                e.printStackTrace();
+            }
+
+
+
         }
 
 
@@ -260,25 +281,6 @@ public class CreatePasswordActivity extends AppCompatActivity {
 
     }
 
-    //Encrypt
-    private String EncryptStr(String str) {
-
-        byte[] encryptedMsgByte = new byte[0];
-        try {
-            encryptedMsgByte = str.getBytes("UTF-8");
-
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-
-        }
-
-        String encodedStr = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            encodedStr = Base64.getEncoder().encodeToString(encryptedMsgByte);
-        }
-        return encodedStr;
-
-    }
 
     public boolean isOnline() {
         ConnectivityManager conMgr = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
