@@ -28,8 +28,11 @@ public class Utility {
 
     @SuppressLint("SimpleDateFormat")
     public static String timeStampToString(Timestamp timestamp) {
-        return new SimpleDateFormat("MM/dd/yyyy").format(timestamp.toDate());
-
+        if (timestamp == null) {
+            return "";
+        } else {
+            return new SimpleDateFormat("MM/dd/yyyy").format(timestamp.toDate());
+        }
     }
 
 }

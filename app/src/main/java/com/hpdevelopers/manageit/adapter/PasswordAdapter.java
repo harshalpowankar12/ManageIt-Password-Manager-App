@@ -19,17 +19,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.hpdevelopers.manageit.EncryptDecrypt;
 import com.hpdevelopers.manageit.R;
 import com.hpdevelopers.manageit.Utility;
 import com.hpdevelopers.manageit.model.Password;
 import com.hpdevelopers.manageit.passwords.CreatePasswordActivity;
 
-import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Locale;
 
 import javax.crypto.BadPaddingException;
@@ -57,7 +54,12 @@ public class PasswordAdapter extends FirestoreRecyclerAdapter<Password, Password
 
         holder.accountN.setText(passwd.getAccount());
         holder.timestampN.setText(Utility.timeStampToString(passwd.getTimestamp()));
-        holder.icontvN.setText(passwd.getAccount().substring(0, 1).toUpperCase(Locale.ROOT));
+        String account = passwd.getAccount();
+        if (account != null && !account.isEmpty()) {
+            holder.icontvN.setText(account.substring(0, 1).toUpperCase(Locale.ROOT));
+        } else {
+            // handle the case where account is null or empty
+        }
 
 
         //DECRYPTING THE DATA
@@ -69,28 +71,12 @@ public class PasswordAdapter extends FirestoreRecyclerAdapter<Password, Password
         //Other
         String other = passwd.getOther();
 
-        String decryptedUserId = null;
-        String decryptedCnfPwd = null;
-        String decryptedOther = null;
 
-        try {
-             decryptedUserId = EncryptDecrypt.decrypt(userId);
-             decryptedCnfPwd = EncryptDecrypt.decrypt(password);
-             decryptedOther = EncryptDecrypt.decrypt(other);
-
-        }catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException | InvalidKeyException e) {
-            e.printStackTrace();
-        }
-
-
-
-        //Copy Password ImageButton
-        String finalDecryptedCnfPwd = decryptedCnfPwd;
         holder.cpypasswordN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 ClipboardManager myClipboard = (ClipboardManager) view.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData myClip = ClipData.newPlainText("Password", finalDecryptedCnfPwd);
+                ClipData myClip = ClipData.newPlainText("Password", password);
                 myClipboard.setPrimaryClip(myClip);
                 Toast.makeText(view.getContext(), "Password Copied", Toast.LENGTH_SHORT).show();
 
@@ -98,8 +84,6 @@ public class PasswordAdapter extends FirestoreRecyclerAdapter<Password, Password
         });
 
         //VertIcon
-        String finalDecryptedUserId = decryptedUserId;
-        String finalDecryptedOther = decryptedOther;
         holder.vertpasswordN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -115,14 +99,14 @@ public class PasswordAdapter extends FirestoreRecyclerAdapter<Password, Password
                             case R.id.copyUsername:
                                 //handle menu1 click
                                 ClipboardManager myUserIdClipboard = (ClipboardManager) view.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                                ClipData myClipUserId = ClipData.newPlainText("UserName", finalDecryptedUserId);
+                                ClipData myClipUserId = ClipData.newPlainText("UserName", userId);
                                 myUserIdClipboard.setPrimaryClip(myClipUserId);
                                 Toast.makeText(view.getContext(), "UserName Copied", Toast.LENGTH_SHORT).show();
                                 break;
                             case R.id.copyPassword:
                                 //handle menu2 click
                                 ClipboardManager myPasswordClipboard = (ClipboardManager) view.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                                ClipData myClipPassword = ClipData.newPlainText("Password", finalDecryptedOther);
+                                ClipData myClipPassword = ClipData.newPlainText("Password", other);
                                 myPasswordClipboard.setPrimaryClip(myClipPassword);
                                 Toast.makeText(view.getContext(), "Password Copied", Toast.LENGTH_SHORT).show();
                                 break;
@@ -143,9 +127,9 @@ public class PasswordAdapter extends FirestoreRecyclerAdapter<Password, Password
             String docIdP = this.getSnapshots().getSnapshot(position).getId();
             Intent intent = new Intent(context, CreatePasswordActivity.class);
             intent.putExtra("account", passwd.getAccount());
-            intent.putExtra("userid", finalDecryptedUserId);
-            intent.putExtra("password", finalDecryptedCnfPwd);
-            intent.putExtra("other", finalDecryptedOther);
+            intent.putExtra("userid", passwd.getUserid());
+            intent.putExtra("password", passwd.getPassword());
+            intent.putExtra("other", passwd.getOther());
 
             intent.putExtra("docIdP", docIdP);
             context.startActivity(intent);

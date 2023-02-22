@@ -22,20 +22,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
-import com.hpdevelopers.manageit.EncryptDecrypt;
 import com.hpdevelopers.manageit.R;
 import com.hpdevelopers.manageit.Utility;
 import com.hpdevelopers.manageit.model.Password;
-
-import java.io.UnsupportedEncodingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 public class CreatePasswordActivity extends AppCompatActivity {
 
@@ -161,15 +150,16 @@ public class CreatePasswordActivity extends AppCompatActivity {
 
     //Validations
     private void savePassword() {
-        String accountname = accountNameEdittext.getText().toString().trim();
+
+
+        String accountName = accountNameEdittext.getText().toString().trim();
         String userid = userIdEdittext.getText().toString().trim();
         String password = passwordEdittext.getText().toString().trim();
-        String cnfpassword = cnfPasswordEditex.getText().toString().trim();
+        String cnfPassword = cnfPasswordEditex.getText().toString().trim();
         String other = otherEdittext.getText().toString().trim();
 
 
-
-        if (accountname.isEmpty()) {
+        if (accountName.isEmpty()) {
             accountNameEdittext.setError("Account Name is Required ");
             return;
         }
@@ -181,35 +171,21 @@ public class CreatePasswordActivity extends AppCompatActivity {
             passwordEdittext.setError("Please Enter Password ");
             return;
         }
-        if ((cnfpassword.isEmpty())) {
-            cnfPasswordEditex.setError("Please Enter Confirm Password");
+        if ((cnfPassword.isEmpty())) {
+            cnfPasswordEditex.setError("Enter Password Again");
         }
 
-        if (!(cnfpassword.equals(password))) {
+        if (!(cnfPassword.equals(password))) {
             cnfPasswordEditex.setError("Password Not Matched !");
         } else {
+            Password passwd = new Password();
+            passwd.setAccount(accountName);
+            passwd.setUserid(userid);
+            passwd.setPassword(cnfPassword);
+            passwd.setOther(other);
+            passwd.setTimestamp(Timestamp.now());
 
-            try {
-                String encryptedUserId = EncryptDecrypt.encrypt(userid);
-                String encryptedCnfPwd = EncryptDecrypt.encrypt(cnfpassword);
-                String encryptedOther = EncryptDecrypt.encrypt(other);
-
-
-                Password passwd = new Password();
-                passwd.setAccount(accountname);
-                passwd.setUserid(encryptedUserId);
-                passwd.setPassword(encryptedCnfPwd);
-                passwd.setOther(encryptedOther);
-                passwd.setTimestamp(Timestamp.now());
-                savePasswordFirebase(passwd);
-
-
-            } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException | InvalidKeyException e) {
-                e.printStackTrace();
-            }
-
-
-
+            savePasswordFirebase(passwd);
         }
 
 
